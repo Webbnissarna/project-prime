@@ -1,0 +1,18 @@
+{
+  "name": "Prime",
+  "version": "0.1.0",
+  "description": "an fps game project made in ue4",
+  "main": "index.js",
+  "repository": "https://github.com/Webbnissarna/project-prime",
+  "author": "Master Kenth <hello@masterkenth.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "commitizen": "^4.2.4",
+    "cz-conventional-changelog": "3.3.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
