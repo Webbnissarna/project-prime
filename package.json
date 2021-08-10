@@ -7,6 +7,7 @@
   "author": "Master Kenth <hello@masterkenth.com>",
   "license": "Apache-2.0",
   "devDependencies": {
+    "clang-format": "^1.5.0",
     "commitizen": "^4.2.4",
     "cz-conventional-changelog": "3.3.0"
   },

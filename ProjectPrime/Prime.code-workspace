@@ -1,21 +1,26 @@
 {
-	"folders": [
-		{
-			"name": "Prime",
-			"path": "."
-		},
-		{
-			"name": "UE4",
-			"path": "C:\\Program Files\\Epic Games\\UE_4.26"
-		}
-	],
-	"settings": {
-		"typescript.tsc.autoDetect": "off"
-	},
-	"extensions": {
-		"recommendations": [
-			"ms-vscode.cpptools",
-			"ms-dotnettools.csharp"
-		]
-	}
+  "folders": [
+    {
+      "name": "Prime",
+      "path": "."
+    },
+    {
+      "name": "UE4",
+      "path": "C:\\Program Files\\Epic Games\\UE_4.26"
+    },
+    {
+      "path": ".."
+    }
+  ],
+  "settings": {
+    "typescript.tsc.autoDetect": "off",
+    "editor.formatOnSave": true
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.cpptools",
+      "ms-dotnettools.csharp",
+      "xaver.clang-format"
+    ]
+  }
 }
