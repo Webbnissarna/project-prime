@@ -2,27 +2,35 @@
 
 #include "MainCharacter.h"
 
-// Sets default values
+#include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
+
 AMainCharacter::AMainCharacter()
 {
-	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	MainCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("MainCollider"));
+	SetRootComponent(MainCollider);
+	MainCollider->SetCapsuleHalfHeight(175.0f / 2.0f);
+	MainCollider->SetCapsuleRadius(30.0f);
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->SetupAttachment(MainCollider);
+	Camera->SetRelativeLocation(FVector(0, 0, 65.0f));
+	Camera->SetFieldOfView(90.0f);
 }
 
-// Called when the game starts or when spawned
-void AMainCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-// Called every frame
 void AMainCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
-// Called to bind functionality to input
-void AMainCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
+void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+void AMainCharacter::BeginPlay()
+{
+	Super::BeginPlay();
 }
