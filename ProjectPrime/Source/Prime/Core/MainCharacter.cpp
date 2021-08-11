@@ -9,6 +9,8 @@ AMainCharacter::AMainCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	bUseControllerRotationYaw = true;
+
 	MainCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("MainCollider"));
 	SetRootComponent(MainCollider);
 	MainCollider->SetCapsuleHalfHeight(175.0f / 2.0f);
@@ -18,6 +20,7 @@ AMainCharacter::AMainCharacter()
 	Camera->SetupAttachment(MainCollider);
 	Camera->SetRelativeLocation(FVector(0, 0, 65.0f));
 	Camera->SetFieldOfView(90.0f);
+	Camera->bUsePawnControlRotation = true;
 }
 
 void AMainCharacter::Tick(float DeltaTime)
