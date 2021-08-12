@@ -4,12 +4,15 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "MainCharacterMovementComponent.h"
 
 AMainCharacter::AMainCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	bUseControllerRotationYaw = true;
+
+	MainMovement = CreateDefaultSubobject<UMainCharacterMovementComponent>(TEXT("MainMovement"));
 
 	MainCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("MainCollider"));
 	SetRootComponent(MainCollider);

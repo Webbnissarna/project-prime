@@ -19,6 +19,9 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere)
+	class UMainCharacterMovementComponent* MainMovement;
+
+	UPROPERTY(EditAnywhere)
 	class UCapsuleComponent* MainCollider;
 
 	UPROPERTY(EditAnywhere)
