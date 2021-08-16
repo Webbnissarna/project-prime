@@ -3,6 +3,7 @@
 #include "MainCharacterMovementComponent.h"
 
 #include "DrawDebugHelpers.h"
+#include "GameFramework/PhysicsVolume.h"
 
 void UMainCharacterMovementComponent::TickComponent(
 	float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -21,33 +22,28 @@ void UMainCharacterMovementComponent::TickComponent(
 
 	const float MaxSpeed = 1200.0f;
 
+	FVector oldVelocity = Velocity;
 	FVector input = ConsumeInputVector();
+	FVector scaledInput = input * MaxSpeed;
 
-	FVector startLoc = PawnOwner->GetActorLocation() + FVector(0, 0, 50.0f);
-	FVector endLoc = startLoc + input.GetSafeNormal() * 100.0f;
-	DrawDebugLine(GetWorld(), startLoc, endLoc, FColor::Cyan, false, DeltaTime * 2);
-	DrawDebugSphere(GetWorld(), endLoc, 20.0f, 8, FColor::Cyan, false, DeltaTime * 2);
-
-	Velocity = input * MaxSpeed;
+	Velocity = scaledInput;
+	Velocity.Z = oldVelocity.Z + GetGravityZ() * DeltaTime;
+	float terminalVelocity = GetPhysicsVolume()->TerminalVelocity;
 
 	FVector Delta = Velocity * DeltaTime;
-	if (!Delta.IsNearlyZero())
+	const FQuat Rotation = UpdatedComponent->GetComponentQuat();
+
+	FHitResult Hit;
+	SafeMoveUpdatedComponent(Delta, Rotation, true, Hit);
+
+	if (Hit.IsValidBlockingHit())
 	{
-		const FQuat Rotation = UpdatedComponent->GetComponentQuat();
-
-		FHitResult Hit;
-		SafeMoveUpdatedComponent(Delta, Rotation, true, Hit);
-
-		if (Hit.IsValidBlockingHit())
-		{
-			HandleImpact(Hit, DeltaTime, Delta);
-			SlideAlongSurface(Delta, 1.f - Hit.Time, Hit.Normal, Hit, true);
-		}
+		HandleImpact(Hit, DeltaTime, Delta);
+		SlideAlongSurface(Delta, 1.f - Hit.Time, Hit.Normal, Hit, true);
+		Velocity.Z = 0;
 	}
 
 	UpdateComponentVelocity();
 
-	GEngine->AddOnScreenDebugMessage(
-		-1, DeltaTime, FColor::Red, FString::Printf(TEXT("start=%s, end=%s"), *startLoc.ToString(), *endLoc.ToString()));
-	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, FString::Printf(TEXT("Vel=%f"), Velocity.Size()));
+	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, FString::Printf(TEXT("Vel=%s"), *Velocity.ToString()));
 }
