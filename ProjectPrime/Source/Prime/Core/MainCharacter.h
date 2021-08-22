@@ -19,6 +19,9 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere)
+	class UMainCharacterMovementComponent* MainMovement;
+
+	UPROPERTY(VisibleAnywhere)
 	class UCapsuleComponent* MainCollider;
 
 	UPROPERTY(VisibleAnywhere)
