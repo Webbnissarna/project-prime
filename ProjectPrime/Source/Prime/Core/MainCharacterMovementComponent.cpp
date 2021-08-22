@@ -57,6 +57,7 @@ void UMainCharacterMovementComponent::TickComponent(
 	FVector desiredMovement = desiredInputMovement;
 	FVector desiredMovementDelta = desiredInputMovement * DeltaTime;
 
+	/** Perform initial movement */
 	FHitResult hit;
 	SafeMoveUpdatedComponent(desiredMovementDelta, rotation, true, hit);
 
@@ -74,6 +75,28 @@ void UMainCharacterMovementComponent::TickComponent(
 		SlideAlongSurface(desiredMovementDelta, 1.0f - hit.Time, adjustedNormal, hit, true);
 	}
 
+	/** Check for step down */
+	if (MaxStepHeight > 0)
+	{
+		FVector groundTraceStartLocation = UpdatedCollider->GetComponentLocation();
+		FVector groundTraceEndLocation = groundTraceStartLocation + FVector::UpVector * -MaxStepHeight;
+		FCollisionShape groundSweepShape = UpdatedCollider->GetCollisionShape();
+		FCollisionQueryParams groundSweepParams;
+		groundSweepParams.AddIgnoredActor(UpdatedCollider->GetOwner());
+		FHitResult groundHit;
+		bool bIsGrounded = GetWorld()->SweepSingleByProfile(groundHit, groundTraceStartLocation, groundTraceEndLocation,
+			FQuat::Identity, TEXT("BlockAll"), groundSweepShape, groundSweepParams);
+
+		if (groundHit.IsValidBlockingHit())
+		{
+			FVector diff = groundHit.Location - groundTraceStartLocation;
+			FVector stepCorrection = FVector::UpVector * -FMath::Abs(diff.Z);
+
+			SafeMoveUpdatedComponent(stepCorrection, rotation, true, groundHit);
+		}
+	}
+
+	/** Apply gravity */
 	float desiredVerticalMovement = oldVelocity.Z + gravityZ * DeltaTime;
 	float clampedVerticalMovement = FMath::Clamp(desiredVerticalMovement, -terminalVelocity, terminalVelocity);
 	Velocity = desiredMovement + FVector::UpVector * clampedVerticalMovement;
