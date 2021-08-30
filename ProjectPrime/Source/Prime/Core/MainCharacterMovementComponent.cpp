@@ -157,7 +157,7 @@ bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
 				TEXT("BlockAll"), groundSweepShape, groundSweepParams);
 		}
 
-		return OutHit.IsValidBlockingHit();
+		return bHit;
 	}
 
 	return false;
