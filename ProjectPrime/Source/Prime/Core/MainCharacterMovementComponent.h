@@ -19,6 +19,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxSpeed;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxStepHeight;
+
 	UPROPERTY()
 	class UCapsuleComponent* UpdatedCollider;
 

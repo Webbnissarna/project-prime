@@ -6,7 +6,8 @@
 #include "DrawDebugHelpers.h"
 #include "GameFramework/PhysicsVolume.h"
 
-UMainCharacterMovementComponent::UMainCharacterMovementComponent() : MaxSpeed(1200.0f), UpdatedCollider(nullptr), bIsOnGround(false)
+UMainCharacterMovementComponent::UMainCharacterMovementComponent()
+	: MaxSpeed(1200.0f), UpdatedCollider(nullptr), MaxStepHeight(20), bIsOnGround(false)
 {
 }
 
@@ -43,8 +44,6 @@ void UMainCharacterMovementComponent::TickComponent(
 	{
 		return;
 	}
-
-	float MaxStepHeight = 20.0f;
 
 	FVector oldVelocity = Velocity;
 	const FQuat rotation = UpdatedComponent->GetComponentQuat();
