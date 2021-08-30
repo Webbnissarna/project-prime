@@ -142,19 +142,23 @@ bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
 		FCollisionQueryParams groundSweepParams;
 		groundSweepParams.AddIgnoredActor(UpdatedCollider->GetOwner());
 
+		FCollisionResponseParams responseParams;
+		UpdatedCollider->InitSweepCollisionParams(groundSweepParams, responseParams);
+
 		/** Construct a flat box contained withing the capsule */
 		const FCollisionShape groundSweepShape =
 			FCollisionShape::MakeBox(FVector(capsuleRadius * UE_INV_SQRT_2, capsuleRadius * UE_INV_SQRT_2, capsuleHalfHeight));
 
 		const FQuat rotated45deg = FQuat(FVector(0.f, 0.f, -1.f), PI * 0.25f);
+		const ECollisionChannel collisionChannel = UpdatedComponent->GetCollisionObjectType();
 
-		bool bHit = GetWorld()->SweepSingleByProfile(OutHit, groundTraceStartLocation, groundTraceEndLocation, rotated45deg,
-			TEXT("BlockAll"), groundSweepShape, groundSweepParams);
+		bool bHit = GetWorld()->SweepSingleByChannel(OutHit, groundTraceStartLocation, groundTraceEndLocation, rotated45deg,
+			collisionChannel, groundSweepShape, groundSweepParams, responseParams);
 
 		if (!bHit)
 		{
-			bHit = GetWorld()->SweepSingleByProfile(OutHit, groundTraceStartLocation, groundTraceEndLocation, FQuat::Identity,
-				TEXT("BlockAll"), groundSweepShape, groundSweepParams);
+			bHit = GetWorld()->SweepSingleByChannel(OutHit, groundTraceStartLocation, groundTraceEndLocation, FQuat::Identity,
+				collisionChannel, groundSweepShape, groundSweepParams, responseParams);
 		}
 
 		return bHit;
