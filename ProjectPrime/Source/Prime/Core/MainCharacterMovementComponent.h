@@ -27,6 +27,7 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
+	bool bIsOnGround;
 
 	/** Check if we're on ground.
 	 * @param OutHit ground hit result if we're on ground.

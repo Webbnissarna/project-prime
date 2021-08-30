@@ -6,7 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "GameFramework/PhysicsVolume.h"
 
-UMainCharacterMovementComponent::UMainCharacterMovementComponent() : MaxSpeed(1200.0f), UpdatedCollider(nullptr)
+UMainCharacterMovementComponent::UMainCharacterMovementComponent() : MaxSpeed(1200.0f), UpdatedCollider(nullptr), bIsOnGround(false)
 {
 }
 
@@ -92,21 +92,33 @@ void UMainCharacterMovementComponent::TickComponent(
 		}
 	}
 
-	/** Apply gravity */
-	float desiredVerticalMovement = oldVelocity.Z + gravityZ * DeltaTime;
-	float clampedVerticalMovement = FMath::Clamp(desiredVerticalMovement, -terminalVelocity, terminalVelocity);
-	Velocity = desiredMovement + FVector::UpVector * clampedVerticalMovement;
-
-	FVector verticalMovementDelta = FVector::UpVector * Velocity.Z * DeltaTime;
-
-	SafeMoveUpdatedComponent(verticalMovementDelta, rotation, true, hit);
-
-	if (hit.IsValidBlockingHit())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, hit.IsValidBlockingHit() ? FColor::Red : FColor::Green,
-			FString::Printf(
-				TEXT("Hit2=%s (N=%s)"), hit.Actor.IsValid() ? *hit.Actor->GetName() : TEXT("None"), *hit.Normal.ToCompactString()));
-		Velocity.Z = 0;
+		FHitResult groundHit;
+		bIsOnGround = CheckForGround(groundHit);
+	}
+
+	/** Apply gravity */
+	if (!bIsOnGround)
+	{
+		float desiredVerticalMovement = oldVelocity.Z + gravityZ * DeltaTime;
+		float clampedVerticalMovement = FMath::Clamp(desiredVerticalMovement, -terminalVelocity, terminalVelocity);
+		Velocity = desiredMovement + FVector::UpVector * clampedVerticalMovement;
+
+		FVector verticalMovementDelta = FVector::UpVector * Velocity.Z * DeltaTime;
+
+		SafeMoveUpdatedComponent(verticalMovementDelta, rotation, true, hit);
+
+		if (hit.IsValidBlockingHit())
+		{
+			GEngine->AddOnScreenDebugMessage(-1, DeltaTime, hit.IsValidBlockingHit() ? FColor::Red : FColor::Green,
+				FString::Printf(TEXT("Hit2=%s (N=%s)"), hit.Actor.IsValid() ? *hit.Actor->GetName() : TEXT("None"),
+					*hit.Normal.ToCompactString()));
+			Velocity.Z = 0;
+		}
+	}
+	else
+	{
+		Velocity = desiredMovement;
 	}
 
 	UpdateComponentVelocity();
