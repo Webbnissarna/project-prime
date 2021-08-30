@@ -136,29 +136,29 @@ bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
 		const float capsuleRadius = UpdatedCollider->GetScaledCapsuleRadius();
 		const float capsuleHalfHeight = UpdatedCollider->GetScaledCapsuleHalfHeight();
 
-		const FVector groundTraceStartLocation = UpdatedCollider->GetComponentLocation() + FVector::UpVector * startZOffset;
-		const FVector groundTraceEndLocation = groundTraceStartLocation + FVector::UpVector * (-MaxStepHeight - startZOffset);
+		const FVector startLocation = UpdatedCollider->GetComponentLocation() + FVector::UpVector * startZOffset;
+		const FVector endLocation = startLocation + FVector::UpVector * (-MaxStepHeight - startZOffset);
 
-		FCollisionQueryParams groundSweepParams;
-		groundSweepParams.AddIgnoredActor(UpdatedCollider->GetOwner());
+		FCollisionQueryParams sweepParams;
+		sweepParams.AddIgnoredActor(UpdatedCollider->GetOwner());
 
 		FCollisionResponseParams responseParams;
-		UpdatedCollider->InitSweepCollisionParams(groundSweepParams, responseParams);
+		UpdatedCollider->InitSweepCollisionParams(sweepParams, responseParams);
 
 		/** Construct a flat box contained withing the capsule */
-		const FCollisionShape groundSweepShape =
+		const FCollisionShape sweepShape =
 			FCollisionShape::MakeBox(FVector(capsuleRadius * UE_INV_SQRT_2, capsuleRadius * UE_INV_SQRT_2, capsuleHalfHeight));
 
 		const FQuat rotated45deg = FQuat(FVector(0.f, 0.f, -1.f), PI * 0.25f);
 		const ECollisionChannel collisionChannel = UpdatedComponent->GetCollisionObjectType();
 
-		bool bHit = GetWorld()->SweepSingleByChannel(OutHit, groundTraceStartLocation, groundTraceEndLocation, rotated45deg,
-			collisionChannel, groundSweepShape, groundSweepParams, responseParams);
+		bool bHit = GetWorld()->SweepSingleByChannel(
+			OutHit, startLocation, endLocation, rotated45deg, collisionChannel, sweepShape, sweepParams, responseParams);
 
 		if (!bHit)
 		{
-			bHit = GetWorld()->SweepSingleByChannel(OutHit, groundTraceStartLocation, groundTraceEndLocation, FQuat::Identity,
-				collisionChannel, groundSweepShape, groundSweepParams, responseParams);
+			bHit = GetWorld()->SweepSingleByChannel(
+				OutHit, startLocation, endLocation, FQuat::Identity, collisionChannel, sweepShape, sweepParams, responseParams);
 		}
 
 		return bHit;
