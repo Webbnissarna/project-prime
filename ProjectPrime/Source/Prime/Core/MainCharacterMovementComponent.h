@@ -25,4 +25,12 @@ public:
 	UMainCharacterMovementComponent();
 	virtual void SetUpdatedComponent(USceneComponent* NewUpdatedComponent) override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+protected:
+
+	/** Check if we're on ground.
+	 * @param OutHit ground hit result if we're on ground.
+	 * @return true if we're on ground, false otherwise.
+	 */
+	bool CheckForGround(FHitResult& OutHit) const;
 };

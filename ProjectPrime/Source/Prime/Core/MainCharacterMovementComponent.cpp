@@ -79,13 +79,9 @@ void UMainCharacterMovementComponent::TickComponent(
 	if (MaxStepHeight > 0)
 	{
 		FVector groundTraceStartLocation = UpdatedCollider->GetComponentLocation();
-		FVector groundTraceEndLocation = groundTraceStartLocation + FVector::UpVector * -MaxStepHeight;
-		FCollisionShape groundSweepShape = UpdatedCollider->GetCollisionShape();
-		FCollisionQueryParams groundSweepParams;
-		groundSweepParams.AddIgnoredActor(UpdatedCollider->GetOwner());
 		FHitResult groundHit;
-		bool bIsGrounded = GetWorld()->SweepSingleByProfile(groundHit, groundTraceStartLocation, groundTraceEndLocation,
-			FQuat::Identity, TEXT("BlockAll"), groundSweepShape, groundSweepParams);
+
+		CheckForGround(groundHit);
 
 		if (groundHit.IsValidBlockingHit())
 		{
@@ -116,4 +112,24 @@ void UMainCharacterMovementComponent::TickComponent(
 	UpdateComponentVelocity();
 
 	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, FString::Printf(TEXT("Velocity=%s"), *Velocity.ToCompactString()));
+bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
+{
+	if (UpdatedCollider)
+	{
+		/** Slightly shrink the sweep shape to avoid false-positives from initial penetrations */
+		const static float shapeInflation = -5.0f;
+
+		FVector groundTraceStartLocation = UpdatedCollider->GetComponentLocation();
+		FVector groundTraceEndLocation = groundTraceStartLocation + FVector::UpVector * -MaxStepHeight;
+		FCollisionShape groundSweepShape = UpdatedCollider->GetCollisionShape(shapeInflation);
+		FCollisionQueryParams groundSweepParams;
+		groundSweepParams.AddIgnoredActor(UpdatedCollider->GetOwner());
+
+		GetWorld()->SweepSingleByProfile(OutHit, groundTraceStartLocation, groundTraceEndLocation, FQuat::Identity,
+			TEXT("BlockAll"), groundSweepShape, groundSweepParams);
+
+		return OutHit.IsValidBlockingHit();
+	}
+
+	return false;
 }
