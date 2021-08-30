@@ -127,17 +127,31 @@ bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
 {
 	if (UpdatedCollider)
 	{
-		/** Slightly shrink the sweep shape to avoid false-positives from initial penetrations */
-		const static float shapeInflation = -5.0f;
+		/** Start slightly above location to avoid false-positives from initial penetrations */
+		const static float startZOffset = 5.0f;
+		const float capsuleRadius = UpdatedCollider->GetScaledCapsuleRadius();
+		const float capsuleHalfHeight = UpdatedCollider->GetScaledCapsuleHalfHeight();
 
-		FVector groundTraceStartLocation = UpdatedCollider->GetComponentLocation();
-		FVector groundTraceEndLocation = groundTraceStartLocation + FVector::UpVector * -MaxStepHeight;
-		FCollisionShape groundSweepShape = UpdatedCollider->GetCollisionShape(shapeInflation);
+		const FVector groundTraceStartLocation = UpdatedCollider->GetComponentLocation() + FVector::UpVector * startZOffset;
+		const FVector groundTraceEndLocation = groundTraceStartLocation + FVector::UpVector * (-MaxStepHeight - startZOffset);
+
 		FCollisionQueryParams groundSweepParams;
 		groundSweepParams.AddIgnoredActor(UpdatedCollider->GetOwner());
 
-		GetWorld()->SweepSingleByProfile(OutHit, groundTraceStartLocation, groundTraceEndLocation, FQuat::Identity,
+		/** Construct a flat box contained withing the capsule */
+		const FCollisionShape groundSweepShape =
+			FCollisionShape::MakeBox(FVector(capsuleRadius * UE_INV_SQRT_2, capsuleRadius * UE_INV_SQRT_2, capsuleHalfHeight));
+
+		const FQuat rotated45deg = FQuat(FVector(0.f, 0.f, -1.f), PI * 0.25f);
+
+		bool bHit = GetWorld()->SweepSingleByProfile(OutHit, groundTraceStartLocation, groundTraceEndLocation, rotated45deg,
 			TEXT("BlockAll"), groundSweepShape, groundSweepParams);
+
+		if (!bHit)
+		{
+			bHit = GetWorld()->SweepSingleByProfile(OutHit, groundTraceStartLocation, groundTraceEndLocation, FQuat::Identity,
+				TEXT("BlockAll"), groundSweepShape, groundSweepParams);
+		}
 
 		return OutHit.IsValidBlockingHit();
 	}
