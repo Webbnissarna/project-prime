@@ -123,6 +123,10 @@ void UMainCharacterMovementComponent::TickComponent(
 	UpdateComponentVelocity();
 
 	GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, FString::Printf(TEXT("Velocity=%s"), *Velocity.ToCompactString()));
+	GEngine->AddOnScreenDebugMessage(
+		-1, DeltaTime, bIsOnGround ? FColor::Green : FColor::Yellow, FString::Printf(TEXT("bIsOnGround")));
+}
+
 bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
 {
 	if (UpdatedCollider)
