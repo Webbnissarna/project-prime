@@ -7,7 +7,7 @@
 #include "GameFramework/PhysicsVolume.h"
 
 UMainCharacterMovementComponent::UMainCharacterMovementComponent()
-	: MaxSpeed(1200.0f), UpdatedCollider(nullptr), MaxStepHeight(20), bIsOnGround(false)
+	: MaxSpeed(1200.0f), UpdatedCollider(nullptr), MaxStepHeight(20.0f), MaxGroundAngle(60.0f), bIsOnGround(false)
 {
 }
 
@@ -133,6 +133,7 @@ bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
 	{
 		/** Start slightly above location to avoid false-positives from initial penetrations */
 		const static float startZOffset = 5.0f;
+
 		const float capsuleRadius = UpdatedCollider->GetScaledCapsuleRadius();
 		const float capsuleHalfHeight = UpdatedCollider->GetScaledCapsuleHalfHeight();
 
@@ -152,16 +153,45 @@ bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
 		const FQuat rotated45deg = FQuat(FVector(0.f, 0.f, -1.f), PI * 0.25f);
 		const ECollisionChannel collisionChannel = UpdatedComponent->GetCollisionObjectType();
 
-		bool bHit = GetWorld()->SweepSingleByChannel(
-			OutHit, startLocation, endLocation, rotated45deg, collisionChannel, sweepShape, sweepParams, responseParams);
+		TArray<FHitResult> sweepHits;
+		bool bHit = GetWorld()->SweepMultiByChannel(
+			sweepHits, startLocation, endLocation, rotated45deg, collisionChannel, sweepShape, sweepParams, responseParams);
 
-		if (!bHit)
+		bool bAnyValidGround = false;
+
+		if (bHit)
 		{
-			bHit = GetWorld()->SweepSingleByChannel(
-				OutHit, startLocation, endLocation, FQuat::Identity, collisionChannel, sweepShape, sweepParams, responseParams);
+			bAnyValidGround = IsAnyHitValidGround(sweepHits);
 		}
 
-		return bHit;
+		if (!bAnyValidGround)
+		{
+			bHit = GetWorld()->SweepMultiByChannel(
+				sweepHits, startLocation, endLocation, rotated45deg, collisionChannel, sweepShape, sweepParams, responseParams);
+
+			if (bHit)
+			{
+				bAnyValidGround = IsAnyHitValidGround(sweepHits);
+			}
+		}
+
+		return bAnyValidGround;
+	}
+
+	return false;
+}
+
+bool UMainCharacterMovementComponent::IsAnyHitValidGround(const TArray<FHitResult>& Hits) const
+{
+	for (const auto& hit : Hits)
+	{
+		float dot = FVector::UpVector | hit.ImpactNormal;
+		float angle = FMath::Acos(dot);
+		float angledeg = FMath::RadiansToDegrees(angle);
+		if (angledeg <= MaxGroundAngle)
+		{
+			return true;
+		}
 	}
 
 	return false;

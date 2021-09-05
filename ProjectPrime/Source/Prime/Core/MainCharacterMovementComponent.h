@@ -22,6 +22,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxStepHeight;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxGroundAngle;
+
 	UPROPERTY()
 	class UCapsuleComponent* UpdatedCollider;
 
@@ -37,4 +40,6 @@ protected:
 	 * @return true if we're on ground, false otherwise.
 	 */
 	bool CheckForGround(FHitResult& OutHit) const;
+
+	bool IsAnyHitValidGround(const TArray<FHitResult>& Hits) const;
 };
