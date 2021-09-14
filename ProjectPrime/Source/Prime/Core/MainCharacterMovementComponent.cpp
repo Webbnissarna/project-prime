@@ -161,7 +161,7 @@ bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
 
 		if (bHit)
 		{
-			bAnyValidGround = IsAnyHitValidGround(sweepHits);
+			bAnyValidGround = IsAnyHitValidGround(sweepHits, OutHit);
 		}
 
 		if (!bAnyValidGround)
@@ -171,7 +171,7 @@ bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
 
 			if (bHit)
 			{
-				bAnyValidGround = IsAnyHitValidGround(sweepHits);
+				bAnyValidGround = IsAnyHitValidGround(sweepHits, OutHit);
 			}
 		}
 
@@ -181,7 +181,7 @@ bool UMainCharacterMovementComponent::CheckForGround(FHitResult& OutHit) const
 	return false;
 }
 
-bool UMainCharacterMovementComponent::IsAnyHitValidGround(const TArray<FHitResult>& Hits) const
+bool UMainCharacterMovementComponent::IsAnyHitValidGround(const TArray<FHitResult>& Hits, FHitResult& OutFirstValidHit) const
 {
 	for (const auto& hit : Hits)
 	{
@@ -190,6 +190,7 @@ bool UMainCharacterMovementComponent::IsAnyHitValidGround(const TArray<FHitResul
 		float angledeg = FMath::RadiansToDegrees(angle);
 		if (angledeg <= MaxGroundAngle)
 		{
+			OutFirstValidHit = hit;
 			return true;
 		}
 	}

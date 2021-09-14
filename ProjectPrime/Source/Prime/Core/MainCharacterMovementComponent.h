@@ -41,5 +41,5 @@ protected:
 	 */
 	bool CheckForGround(FHitResult& OutHit) const;
 
-	bool IsAnyHitValidGround(const TArray<FHitResult>& Hits) const;
+	bool IsAnyHitValidGround(const TArray<FHitResult>& Hits, FHitResult& OutFirstValidHit) const;
 };
