@@ -60,18 +60,30 @@ void UMainCharacterMovementComponent::TickComponent(
 	FHitResult hit;
 	SafeMoveUpdatedComponent(desiredMovementDelta, rotation, true, hit);
 
+	FVector colliderLocation = UpdatedCollider->GetComponentLocation();
+	float feetZ = colliderLocation.Z - UpdatedCollider->GetScaledCapsuleHalfHeight();
+	FVector feetLocation = FVector(colliderLocation.X, colliderLocation.Y, feetZ);
+
 	if (hit.IsValidBlockingHit())
 	{
-		float surfaceDot = hit.Normal | FVector::UpVector;
+		FVector hitNormal = hit.Normal;
+		float surfaceDot = hitNormal | FVector::UpVector;
 		float surfaceAngleRad = FMath::Acos(surfaceDot);
 		float surfaceAngle = FMath::RadiansToDegrees(surfaceAngleRad);
 
-		FVector adjustedNormal = FVector(0, 0, 1).GetSafeNormal();
+		float heightDiff = hit.ImpactPoint.Z - feetZ;
 
-		FVector slideVec = ComputeSlideVector(desiredMovementDelta, 1.0f - hit.Time, adjustedNormal, hit);
+		bool bStepIsTallerThanMaxHeight = heightDiff > (MaxStepHeight + 0.5f);
+
+		if (bStepIsTallerThanMaxHeight)
+		{
+			hitNormal.Z = 0;
+			hitNormal.Normalize();
+		}
 
 		HandleImpact(hit, DeltaTime, desiredMovementDelta);
-		SlideAlongSurface(desiredMovementDelta, 1.0f - hit.Time, adjustedNormal, hit, true);
+
+		SlideAlongSurface(desiredMovementDelta, 1.0f - hit.Time, hitNormal, hit, true);
 	}
 
 	/** Check for step down */
