@@ -18,6 +18,7 @@ AMainCharacter::AMainCharacter()
 	SetRootComponent(MainCollider);
 	MainCollider->SetCapsuleHalfHeight(175.0f / 2.0f);
 	MainCollider->SetCapsuleRadius(30.0f);
+	MainCollider->bReturnMaterialOnMove = true;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(MainCollider);

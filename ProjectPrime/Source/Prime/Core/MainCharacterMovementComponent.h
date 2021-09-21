@@ -17,6 +17,9 @@ class PRIME_API UMainCharacterMovementComponent : public UPawnMovementComponent
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WalkForce;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

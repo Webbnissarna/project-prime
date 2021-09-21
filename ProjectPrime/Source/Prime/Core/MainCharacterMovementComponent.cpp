@@ -5,9 +5,15 @@
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/PhysicsVolume.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 UMainCharacterMovementComponent::UMainCharacterMovementComponent()
-	: MaxSpeed(1200.0f), UpdatedCollider(nullptr), MaxStepHeight(20.0f), MaxGroundAngle(60.0f), bIsOnGround(false)
+	: WalkForce(1000.0f)
+	, MaxSpeed(1200.0f)
+	, UpdatedCollider(nullptr)
+	, MaxStepHeight(20.0f)
+	, MaxGroundAngle(60.0f)
+	, bIsOnGround(false)
 {
 }
 
@@ -56,9 +62,34 @@ void UMainCharacterMovementComponent::TickComponent(
 	FVector desiredMovement = desiredInputMovement;
 	FVector desiredMovementDelta = desiredInputMovement * DeltaTime;
 
+	FHitResult fricHit;
+	FCollisionQueryParams qParams;
+	qParams.AddIgnoredActor(GetOwner());
+	qParams.bReturnPhysicalMaterial = true;
+	GetWorld()->LineTraceSingleByChannel(fricHit, GetActorFeetLocation() + FVector::UpVector * 10.0f,
+		GetActorFeetLocation() + FVector::UpVector * -10.0f, ECollisionChannel::ECC_Pawn, qParams);
+
+	float mass = 95.0f;
+	float friction = 0.7f;
+	float frictionRatio = 0.1f;
+	float leastForce = WalkForce * frictionRatio;
+	float surfaceForce = leastForce + ((WalkForce - leastForce) * friction);
+	FVector finalForce = surfaceForce * input;
+	FVector acceleration = finalForce / mass;
+	FVector idealVelocity = oldVelocity + acceleration * DeltaTime;
+
+	FVector clampedNewVelocity = idealVelocity.GetClampedToMaxSize2D(MaxSpeed);
+	Velocity = clampedNewVelocity;
+	MoveUpdatedComponent(Velocity * DeltaTime, rotation, false);
+	UpdateComponentVelocity();
+
+	if (!input.IsNearlyZero())
+		UE_LOG(LogTemp, Log, TEXT("|V|=%f, dt=%f"), Velocity.Size(), DeltaTime);
+	return;
+
 	/** Perform initial movement */
 	FHitResult hit;
-	SafeMoveUpdatedComponent(desiredMovementDelta, rotation, true, hit);
+	SafeMoveUpdatedComponent(clampedNewVelocity, rotation, true, hit);
 
 	FVector colliderLocation = UpdatedCollider->GetComponentLocation();
 	float feetZ = colliderLocation.Z - UpdatedCollider->GetScaledCapsuleHalfHeight();
@@ -81,9 +112,9 @@ void UMainCharacterMovementComponent::TickComponent(
 			hitNormal.Normalize();
 		}
 
-		HandleImpact(hit, DeltaTime, desiredMovementDelta);
+		HandleImpact(hit, DeltaTime, clampedNewVelocity);
 
-		SlideAlongSurface(desiredMovementDelta, 1.0f - hit.Time, hitNormal, hit, true);
+		SlideAlongSurface(clampedNewVelocity, 1.0f - hit.Time, hitNormal, hit, true);
 	}
 
 	/** Check for step down */
@@ -106,6 +137,16 @@ void UMainCharacterMovementComponent::TickComponent(
 	{
 		FHitResult groundHit;
 		bIsOnGround = CheckForGround(groundHit);
+
+		if (bIsOnGround)
+		{
+			const auto hitPhysMaterial = groundHit.PhysMaterial.Get();
+			GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Cyan,
+				FString::Printf(TEXT("PhysicsMaterial: %s friction: %f (%f)"),
+					hitPhysMaterial ? *hitPhysMaterial->GetName() : TEXT("unknown"),
+					hitPhysMaterial ? hitPhysMaterial->Friction : -1.0f,
+					hitPhysMaterial ? hitPhysMaterial->StaticFriction : -1.0f));
+		}
 	}
 
 	/** Apply gravity */
